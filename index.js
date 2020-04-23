@@ -15,6 +15,12 @@ const init = (task, params) => {
     case 'generar-numeros':
       generadorPseudoaleatorio(...convertToNumber(params.slice(1)));
       break;
+    case 'prueba-distancias':
+      pruebaDistancias(...convertToNumber(params.slice(1)));
+      break;
+    case 'prueba-varianza':
+      pruebaVarianza();
+      break;
     default:
       console.log('Por favor ingrese una tarea válida');
       break;
@@ -23,7 +29,14 @@ const init = (task, params) => {
 
 const generadorPseudoaleatorio = (a, c, x, m, fileName) => {
   try {
-    console.log("generadorPseudoaleatorio -> a, c, x, m, fileName", a, c, x, m, fileName)
+    console.log(
+      'generadorPseudoaleatorio -> a, c, x, m, fileName',
+      a,
+      c,
+      x,
+      m,
+      fileName
+    );
     const pseudoNumbers = generatePseudorandomeNumbers({ a, c, x, m });
     writeFile(sortNumbers(pseudoNumbers), fileName);
   } catch (error) {
@@ -169,6 +182,73 @@ const pruebaFrecuencias = (n, XAlpha) => {
       console.log(
         'Por chi cuadrado, los NSA no están uniformemente distribuidos'
       );
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const pruebaDistancias = (alpha, beta, n) => {
+  try {
+    const PRN = readFile('psuedoDump');
+
+    const tetha = beta - alpha;
+    let huecos = [];
+    let pi;
+
+    const indexes = PRN.map(
+      (prn, index) => prn >= alpha && prn <= beta && index
+    ).filter((prn) => prn);
+
+    for (let i = 0; i <= n; i++) {
+      if (i >= n) pi = Math.pow(1 - tetha, n);
+      else pi = tetha * Math.pow(1 - tetha, i);
+
+      huecos[i] = {
+        pi,
+        fei: (indexes.length - 1) * pi,
+        tag: `p${i}`,
+      };
+    }
+
+    console.table(huecos);
+    console.table(indexes);
+    console.log(
+      'pi:',
+      huecos.reduce((sum, obj) => sum + obj.pi, 0)
+    );
+    console.log(
+      'fei:',
+      huecos.reduce((sum, obj) => sum + obj.fei, 0)
+    );
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const pruebaVarianza = () => {
+  try {
+    const PRN = readFile('psuedoDump');
+    const N = PRN.length;
+
+    const promedio = PRN.reduce((sum, currentValue) => sum + currentValue) / N;
+
+    const varianza = PRN.reduce(
+      (sum, currentValue) =>
+        sum + Math.pow(currentValue - promedio, 2) / (N - 1),
+      0
+    );
+    
+    const LI = 132.2554 / (12 * (N - 1));
+    const LH = 74.2219 / (12 * (N - 1));
+
+    console.log('Varianza', varianza);
+    console.log('Limit low', LI);
+    console.log('Limit High', LH);
+
+    if (LI <= varianza && varianza <= LH)
+      console.log('Por límites, los NSA están uniformemente distribuidos');
+    else
+      console.log('Por límites, los NSA no están uniformemente distribuidos');
   } catch (error) {
     console.log(error);
   }
