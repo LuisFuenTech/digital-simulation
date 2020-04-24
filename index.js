@@ -123,12 +123,54 @@ const pruebaKolmogorov = (DAlpha) => {
 
 const pruebaSeries = (n) => {
   try {
+    // const numbers = [
+    //   8,
+    //   5,
+    //   4,
+    //   5,
+    //   2,
+    //   5,
+    //   2,
+    //   4,
+    //   6,
+    //   4,
+    //   2,
+    //   4,
+    //   0,
+    //   2,
+    //   5,
+    //   3,
+    //   3,
+    //   1,
+    //   7,
+    //   5,
+    //   6,
+    //   4,
+    //   4,
+    //   0,
+    //   8,
+    // ];
+
+    // const X =
+    //   (Math.pow(n, 2) / 99) *
+    //   numbers.reduce((sum, cur) => sum + Math.pow(cur - 3.96, 2), 0);
+
+    // console.log('square:', Math.pow(n, 2) / 99);
+    // console.log(
+    //   'sum:',
+    //   numbers.reduce((sum, cur) => sum + Math.pow(cur - 3.96, 2), 0)
+    // );
+    // console.log('X:', X);
+
     const PRN = readFile('pseudoNumbers');
     let planeXY = [];
     let aux = [];
     let pairs = [];
     const N = PRN.length;
     const fe = (N - 1) / Math.pow(n, 2);
+    let total = 0;
+    let Xo = 0;
+    const XAlpha = 36.415;
 
     for (let i = 0; i < N - 1; i++) {
       pairs.push([PRN[i], PRN[i + 1]]);
@@ -147,16 +189,61 @@ const pruebaSeries = (n) => {
       aux = [];
     }
 
-    console.log(planeXY.length, 'plane');
+    for (let i = 0; i < pairs.length; i++) {
+      for (let j = 0; j < planeXY.length; j++) {
+        planeXY[j].map((pair, index) => {
+          const x = pairs[i][0];
+          const y = pairs[i][1];
+          const inX = pair.x;
+          const inY = pair.y;
+
+          if (inX - 0.2 <= x && x < inX && inY - 0.2 <= y && y < inY) {
+            planeXY[j][index].fo += 1;
+            console.log(planeXY[j][index]);
+            console.log(
+              `x:${x} - y: ${y} === pair.x: ${pair.x} - pair.y:${pair.y}. i=${i}`
+            );
+            console.log('=======================================');
+          }
+        });
+      }
+    }
+
+    for (const data of planeXY) {
+      total += data.reduce((sum, curr) => sum + curr.fo, 0);
+      Xo += data.reduce((sum, curr) => sum + Math.pow(curr.fo - curr.fe, 2), 0);
+    }
+
+    const final = (Math.pow(n, 2) / (N - 1)) * Xo;
+
+    console.log(
+      planeXY.length,
+      'plane',
+      'total:',
+      total,
+      'Xo:',
+      Xo,
+      'Xo final:',
+      final
+    );
     console.log(planeXY);
 
     console.log(count);
 
     // console.table(pairs);
     console.log('total:', pairs.length);
-    writeFile(pairs, 'foo');
+    writeFile(pairs, 'pairs');
     writeFile(planeXY, 'XY');
     console.table(planeXY);
+
+    if (final < XAlpha)
+      console.log(
+        'Por estadístico de prueba, los NSA están uniformemente distribuidos'
+      );
+    else
+      console.log(
+        'Por estadístico de prueba, los NSA no están uniformemente distribuidos'
+      );
   } catch (error) {
     console.log(error);
   }
