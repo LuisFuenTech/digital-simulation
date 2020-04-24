@@ -21,6 +21,12 @@ const init = (task, params) => {
     case 'prueba-varianza':
       pruebaVarianza();
       break;
+    case 'prueba-ks':
+      pruebaKolmogorov(...convertToNumber(params.slice(1)));
+      break;
+    case 'prueba-series':
+      pruebaSeries(...convertToNumber(params.slice(1)));
+      break;
     default:
       console.log('Por favor ingrese una tarea válida');
       break;
@@ -62,6 +68,97 @@ const generatePseudorandomeNumbers = ({ a, c, x, m }) => {
   } catch (error) {
     console.log(error);
     return;
+  }
+};
+
+const pruebaKolmogorov = (DAlpha) => {
+  try {
+    const PRN = readFile('pseudoNumbers');
+    let PRNList = [];
+    let positive = [];
+    let negative = [];
+    const sortedPRN = sortNumbers(PRN);
+    const N = sortedPRN.length;
+
+    for (let i = 0; i < N; i++) {
+      const fn = (i + 1) / N;
+      const xi = sortedPRN[i];
+      const left = Math.abs(fn - xi);
+      const right = Math.abs(xi - (i + 1 - 1) / N);
+
+      PRNList.push({
+        fn,
+        xi,
+        left,
+        right,
+      });
+
+      positive.push(left);
+      negative.push(right);
+    }
+
+    console.table(PRNList);
+
+    const DNpositive = Math.max(...positive.map((number) => Math.abs(number)));
+    const DNNegative = Math.max(...negative.map((number) => Math.abs(number)));
+    const DN = Math.max(DNpositive, DNNegative);
+
+    console.log('DN left', DNpositive);
+    console.log('DN right', DNNegative);
+    console.log('DN:', DN);
+    console.log('DAlpha:', DAlpha);
+
+    if (DN <= DAlpha)
+      console.log(
+        'Por estadístico de prueba, los NSA están uniformemente distribuidos'
+      );
+    else
+      console.log(
+        'Por estadístico de prueba, los NSA no están uniformemente distribuidos'
+      );
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const pruebaSeries = (n) => {
+  try {
+    const PRN = readFile('pseudoNumbers');
+    let planeXY = [];
+    let aux = [];
+    let pairs = [];
+    const N = PRN.length;
+    const fe = (N - 1) / Math.pow(n, 2);
+
+    for (let i = 0; i < N - 1; i++) {
+      pairs.push([PRN[i], PRN[i + 1]]);
+    }
+
+    let count = 0;
+
+    console.log(planeXY.length, 'plane');
+
+    for (let i = 1; i <= n; i++) {
+      for (let j = 1; j <= n; j++) {
+        count++;
+        aux.push({ x: j / n, y: i / n, fe, fo: 0 });
+      }
+      planeXY.push(aux);
+      aux = [];
+    }
+
+    console.log(planeXY.length, 'plane');
+    console.log(planeXY);
+
+    console.log(count);
+
+    // console.table(pairs);
+    console.log('total:', pairs.length);
+    writeFile(pairs, 'foo');
+    writeFile(planeXY, 'XY');
+    console.table(planeXY);
+  } catch (error) {
+    console.log(error);
   }
 };
 
@@ -227,7 +324,7 @@ const pruebaDistancias = (alpha, beta, n) => {
 
 const pruebaVarianza = () => {
   try {
-    const PRN = readFile('psuedoDump');
+    const PRN = readFile('pseudoNumbers');
     const N = PRN.length;
 
     const promedio = PRN.reduce((sum, currentValue) => sum + currentValue) / N;
@@ -237,10 +334,11 @@ const pruebaVarianza = () => {
         sum + Math.pow(currentValue - promedio, 2) / (N - 1),
       0
     );
-    
+
     const LI = 132.2554 / (12 * (N - 1));
     const LH = 74.2219 / (12 * (N - 1));
 
+    console.log('Promedio:', promedio);
     console.log('Varianza', varianza);
     console.log('Limit low', LI);
     console.log('Limit High', LH);
