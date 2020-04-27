@@ -123,46 +123,8 @@ const pruebaKolmogorov = (DAlpha) => {
 
 const pruebaSeries = (n) => {
   try {
-    // const numbers = [
-    //   8,
-    //   5,
-    //   4,
-    //   5,
-    //   2,
-    //   5,
-    //   2,
-    //   4,
-    //   6,
-    //   4,
-    //   2,
-    //   4,
-    //   0,
-    //   2,
-    //   5,
-    //   3,
-    //   3,
-    //   1,
-    //   7,
-    //   5,
-    //   6,
-    //   4,
-    //   4,
-    //   0,
-    //   8,
-    // ];
 
-    // const X =
-    //   (Math.pow(n, 2) / 99) *
-    //   numbers.reduce((sum, cur) => sum + Math.pow(cur - 3.96, 2), 0);
-
-    // console.log('square:', Math.pow(n, 2) / 99);
-    // console.log(
-    //   'sum:',
-    //   numbers.reduce((sum, cur) => sum + Math.pow(cur - 3.96, 2), 0)
-    // );
-    // console.log('X:', X);
-
-    const PRN = readFile('pseudoNumbers');
+    const PRN = readFile('psuedoDump');
     let planeXY = [];
     let aux = [];
     let pairs = [];
@@ -235,6 +197,8 @@ const pruebaSeries = (n) => {
     writeFile(pairs, 'pairs');
     writeFile(planeXY, 'XY');
     console.table(planeXY);
+
+    planeXY.map((item) => item.map((i) => console.log(i)));
 
     if (final < XAlpha)
       console.log(
@@ -371,13 +335,14 @@ const pruebaFrecuencias = (n, XAlpha) => {
   }
 };
 
-const pruebaDistancias = (alpha, beta, n) => {
+const pruebaDistancias = (alpha, beta, n, XAlpha) => {
   try {
-    const PRN = readFile('psuedoDump');
+    const PRN = readFile('pseudoNumbers');
 
     const tetha = beta - alpha;
     let huecos = [];
     let pi;
+    let SumFoi = 0;
 
     const indexes = PRN.map(
       (prn, index) => prn >= alpha && prn <= beta && index
@@ -389,21 +354,48 @@ const pruebaDistancias = (alpha, beta, n) => {
 
       huecos[i] = {
         pi,
-        fei: (indexes.length - 1) * pi,
+        i,
         tag: `p${i}`,
+        foi: 0,
       };
     }
 
+    for (let i = 0; i < indexes.length - 1; i++) {
+      let hole = indexes[i + 1] - indexes[i] - 1;
+
+      for (let j = 0; j <= n; j++) {
+        if (hole === j) {
+          huecos[j].foi += 1;
+          SumFoi++;
+        }
+      }
+
+      if (hole > n) {
+        huecos[n].foi += 1;
+        SumFoi++;
+      }
+    }
+
+    huecos.map(
+      (item, index) => (huecos[index].fei = SumFoi * huecos[index].pi)
+    );
+
     console.table(huecos);
-    console.table(indexes);
-    console.log(
-      'pi:',
-      huecos.reduce((sum, obj) => sum + obj.pi, 0)
+    const Xo = huecos.reduce(
+      (sum, curr) => sum + Math.pow(curr.foi - curr.fei, 2) / curr.fei,
+      0
     );
-    console.log(
-      'fei:',
-      huecos.reduce((sum, obj) => sum + obj.fei, 0)
-    );
+
+    console.log('Xo:', Xo, 'Indexes:', indexes.length);
+
+    if (Xo < XAlpha)
+      console.log(
+        'Por chi cuadrado, los NSA están uniformemente distribuidos y es independiente'
+      );
+    else
+      console.log(
+        'Por chi cuadrado, los NSA no están uniformemente distribuidos y es independiente'
+      );
   } catch (error) {
     console.log(error);
   }
