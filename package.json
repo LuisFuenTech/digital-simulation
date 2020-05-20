@@ -9,7 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chi-squared": "^1.1.0"
+    "chi-squared": "^1.1.0",
+    "node-xlsx": "^0.15.0",
+    "xlsx": "^0.16.1"
   },
   "devDependencies": {},
   "description": ""

@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const xlsx = require('node-xlsx');
 
 const paramsList = process.argv.slice(2);
 const task = paramsList[0];
@@ -44,7 +45,13 @@ const generadorPseudoaleatorio = (a, c, x, m, fileName) => {
       fileName
     );
     const pseudoNumbers = generatePseudorandomeNumbers({ a, c, x, m });
-    writeFile(sortNumbers(pseudoNumbers), fileName);
+    writeFile(sortNumbers(pseudoNumbers), 'sort_' + fileName);
+    writeFile(pseudoNumbers, fileName);
+
+    const r2 = generatePseudorandomeNumbers({ a, c, x: x + 23, m });
+    writeFile(r2, fileName + '_r2');
+
+    exportFile(fileName, m);
   } catch (error) {
     console.log(error);
   }
@@ -69,6 +76,41 @@ const generatePseudorandomeNumbers = ({ a, c, x, m }) => {
     console.log(error);
     return;
   }
+};
+
+const exportFile = async (fileName, m) => {
+  const data = readFile(fileName);
+  const r2 = readFile(fileName + '_r2');
+
+  const foo = data.sort(function () {
+    return Math.random() - 0.5;
+  });
+
+  const fooR2 = r2.sort(function () {
+    return Math.random() - 0.5;
+  });
+
+  let xlsxData = foo.slice(0, 200).map((item, index, arr) => {
+    const info = {
+      R1: arr[index] / m,
+      R2: fooR2[index] / m,
+    };
+
+    return Array.from(Object.values(info));
+  });
+
+  xlsxData.unshift(['R1', 'R2']);
+
+  const buffer = xlsx.build([{ name: 'npa', data: xlsxData }]);
+
+  writeXLSXFile(buffer, 'taller');
+};
+
+const writeXLSXFile = async (data, fileName) => {
+  let route = path.join(__dirname, `Files/${fileName}.xlsx`);
+  let fileExits = fs.existsSync(route);
+  if (fileExits) fs.unlinkSync(route);
+  fs.writeFileSync(route, data);
 };
 
 const pruebaKolmogorov = (DAlpha) => {
@@ -123,7 +165,6 @@ const pruebaKolmogorov = (DAlpha) => {
 
 const pruebaSeries = (n) => {
   try {
-
     const PRN = readFile('psuedoDump');
     let planeXY = [];
     let aux = [];
